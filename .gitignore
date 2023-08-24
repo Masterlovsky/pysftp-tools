@@ -1,5 +1,6 @@
 venv/
 env/
+myenv/
 __pycache__/
 *.py[cod]
 *.so
@@ -15,3 +16,4 @@ __pycache__/
 *.swp
 data/
 test/
+conf_private.yml

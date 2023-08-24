@@ -233,7 +233,8 @@ class SFTPFileManager_Tool(object):
         # check path style
         style = "Linux" if "/" in target_path else "Windows"
         if style == "Windows":
-            target_folder = Path(target_path).parent.as_posix().replace("/", "\\")
+            target_folder = Path(
+                target_path).parent.as_posix().replace("/", "\\")
         else:
             target_folder = Path(target_path).parent.as_posix()
         if not self.exists(target_folder):
@@ -245,7 +246,60 @@ class SFTPFileManager_Tool(object):
                 return False
             try:
                 ssh.upload(local_path=local_path, target_path=target_path)
-                print(f"Upload success, save to {target_path}")
+                # print(f"Upload success, save to {target_path}")
             except Exception as e:
                 print(f'File "{local_path}" upload failed!')
                 print(e)
+
+    def upload_folder(self, local_folder, remote_folder):
+        """
+        上传文件夹
+        :param local_folder:    本地文件夹目录
+        :param remote_folder:   远程文件夹目录
+        :return:
+        """
+        with SSHConnectionManager(**self.ssh_args) as ssh:
+            files_list = Path(local_folder).glob("**/*")
+            files_list = [x for x in files_list if x.is_file()]
+            for file in files_list:
+                remote_path = str(file).replace(
+                    local_folder, remote_folder).replace("\\", "/")
+                local_path = str(file)
+                ssh.upload(local_path=local_path, target_path=remote_path)
+
+    def upload_file_via_jumpserver(self, local_path, node_name, server_list, multi_thread=False):
+        """
+        通过Jumpserver堡垒机上传文件到server_list中的服务器
+        """
+        try:
+            file_name = Path(local_path).name
+            succ = 0  # Number of servers successfully uploaded
+            if multi_thread:
+                def callback(x):
+                    nonlocal succ
+                    succ += 1
+                cpu_count = multiprocessing.cpu_count() // 2
+                if cpu_count == 0:
+                    cpu_count = 1
+                pool = multiprocessing.Pool(cpu_count)
+                for server in server_list:
+                    real_path = node_name + "/" + server + "/" + file_name
+                    pool.apply_async(func=self.upload_file, args=(
+                        local_path, real_path), callback=lambda x: callback(x))
+                pool.close()
+                pool.join()
+            else:
+                for server in server_list:
+                    real_path = node_name + "/" + server + "/" + file_name
+                    # Upload files to the default directory of the fortress machine's server
+                    # usually the user's home directory(env)
+                    try:
+                        self.upload_file(local_path=local_path,
+                                         target_path=real_path)
+                        succ += 1
+                    except Exception as e:
+                        print(e)
+            print(
+                f"Upload file {local_path} to {succ} servers in {node_name} success!")
+        except Exception as e:
+            print(e)
