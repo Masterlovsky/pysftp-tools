@@ -14,6 +14,7 @@ import datetime
 import json
 import yaml
 import os
+import sys
 
 
 def get_auth(KeyID, SecretID):
@@ -66,7 +67,14 @@ def get_server_list(jms_url, auth):
     return server_list
 
 
-if __name__ == '__main__':
+def get_file_from_repo(ip, url, local_path, **kargs):
+    full_url = f"http://{ip}{url}"
+    username = kargs.get("username", None)
+    password = kargs.get("password", None)
+    cmd = f"wget --user={username} --password={password} -P {local_path} {full_url}"
+    os.system(cmd)
+
+def push():
     csv_f = "data/test.csv"
     # get conf file
     if os.path.exists("conf_private.yml"):
@@ -94,3 +102,29 @@ if __name__ == '__main__':
     mt = bl_conf["file"]["multi_thread"]
     sshtool = SFTPFileManager_Tool(**ssh_conf)
     sshtool.upload_file_via_jumpserver(local_file, node, sl, mt)
+
+def pull():
+    # get conf file
+    if os.path.exists("conf_private.yml"):
+        bl_conf = yaml.load(open("conf_private.yml"), Loader=yaml.FullLoader)
+    else:
+        bl_conf = yaml.load(open("conf.yml"), Loader=yaml.FullLoader)
+    # read repository conf
+    ip = bl_conf["repository"]["ip"]
+    url = bl_conf["repository"]["url"]
+    local_path = bl_conf["file"]["local_path"]
+    username = bl_conf["repository"]["username"]
+    password = bl_conf["repository"]["password"]
+    get_file_from_repo(ip, url, local_path, username=username, password=password)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python3 main.py push/pull")
+        exit(0)
+    cmd = sys.argv[1]
+    if cmd == "push":
+        push()
+    elif cmd == "pull":
+        pull()
+    else:
+        print("Usage: python3 main.py push/pull")

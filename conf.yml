@@ -1,3 +1,10 @@
+# remote repository settings
+repository:
+  username: 
+  password: 
+  ip: 
+  url: 
+
 # Used for fortress machine environment configuration
 jumpserver:
   host: "192.168.150.1"
@@ -9,7 +16,8 @@ jumpserver:
   keyid: ""
   secretid: ""
 
-# Used for uploading or downloading files
+# Used for uploading or downloading files, local_Path should be a file when uploading,
+# When downloading local_Path should be a directory
 file:
   local_path: ""
   remote_path: ""
