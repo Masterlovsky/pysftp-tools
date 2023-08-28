@@ -12,6 +12,7 @@ jumpserver:
   username: 
   pkey: 
   pwd:
+  platform: 
   node: 
   keyid: ""
   secretid: ""

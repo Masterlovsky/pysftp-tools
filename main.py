@@ -40,7 +40,7 @@ def get_user_info(jms_url, auth):
         print(json.dumps(json_data, indent=4))
 
 
-def get_server_list(jms_url, auth):
+def get_server_list(jms_url, auth, platform):
     """
     调用Jumpserver api获取服务器列表
     """
@@ -48,7 +48,7 @@ def get_server_list(jms_url, auth):
     # get host list with jumpserver api
     url = jms_url + '/api/v1/assets/hosts/'
     gmt_form = '%a, %d %b %Y %H:%M:%S GMT'
-    params = {'platform': 'SEANet'}
+    params = {'platform': platform}
     headers = {
         'Accept': 'application/json',
         'Date': datetime.datetime.utcnow().strftime(gmt_form),
@@ -95,8 +95,9 @@ def push():
     KeyID = bl_conf["jumpserver"]["keyid"]
     SecretID = bl_conf["jumpserver"]["secretid"]
     auth = get_auth(KeyID, SecretID)
+    platform = bl_conf["jumpserver"]["platform"]
     # get_user_info(jms_url, auth)
-    sl = get_server_list(jms_url, auth)
+    sl = get_server_list(jms_url, auth, platform)
     # upload file to server
     local_file = bl_conf["file"]["local_path"]
     mt = bl_conf["file"]["multi_thread"]
