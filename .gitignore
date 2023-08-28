@@ -8,6 +8,7 @@ __pycache__/
 *.pyo
 *.dll
 *.exe
+.venv/
 .idea/
 .vscode/
 *.sublime-project
