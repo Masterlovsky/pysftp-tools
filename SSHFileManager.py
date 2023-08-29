@@ -249,7 +249,9 @@ class SFTPFileManager_Tool(object):
                 # print(f"Upload success, save to {target_path}")
             except Exception as e:
                 print(f'File "{local_path}" upload failed!')
-                print(e)
+                # throw a new exception
+                return False
+        return True
 
     def upload_folder(self, local_folder, remote_folder):
         """
@@ -267,7 +269,7 @@ class SFTPFileManager_Tool(object):
                 local_path = str(file)
                 ssh.upload(local_path=local_path, target_path=remote_path)
 
-    def upload_file_via_jumpserver(self, local_path, node_name, server_list, multi_thread=False):
+    def upload_file_via_jumpserver(self, local_path, server_list, multi_thread=False):
         """
         通过Jumpserver堡垒机上传文件到server_list中的服务器
         """
@@ -277,29 +279,28 @@ class SFTPFileManager_Tool(object):
             if multi_thread:
                 def callback(x):
                     nonlocal succ
-                    succ += 1
+                    if x:
+                        succ += 1
                 cpu_count = multiprocessing.cpu_count() // 2
                 if cpu_count == 0:
                     cpu_count = 1
                 pool = multiprocessing.Pool(cpu_count)
+                total = len(server_list)
                 for server in server_list:
-                    real_path = node_name + "/" + server + "/" + file_name
-                    pool.apply_async(func=self.upload_file, args=(
-                        local_path, real_path), callback=lambda x: callback(x))
+                    real_path = server[1] + "/" + server[0] + "/" + file_name
+                    pool.apply_async(func=self.upload_file, args=(local_path, real_path), callback=callback)
                 pool.close()
                 pool.join()
             else:
                 for server in server_list:
-                    real_path = node_name + "/" + server + "/" + file_name
+                    real_path = server[1] + "/" + server[0] + "/" + file_name
                     # Upload files to the default directory of the fortress machine's server
                     # usually the user's home directory(env)
                     try:
-                        self.upload_file(local_path=local_path,
-                                         target_path=real_path)
-                        succ += 1
+                        if self.upload_file(local_path=local_path, target_path=real_path):
+                            succ += 1
                     except Exception as e:
                         print(e)
-            print(
-                f"Upload file {local_path} to {succ} servers in {node_name} success!")
+            print(f"Upload file {local_path} to {succ}/{total} servers success!")
         except Exception as e:
             print(e)

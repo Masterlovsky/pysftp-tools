@@ -40,7 +40,7 @@ def get_user_info(jms_url, auth):
         print(json.dumps(json_data, indent=4))
 
 
-def get_server_list(jms_url, auth, platform):
+def get_server_list(jms_url, auth, platform, nodes):
     """
     调用Jumpserver api获取服务器列表
     """
@@ -60,7 +60,9 @@ def get_server_list(jms_url, auth, platform):
         # 处理返回的 JSON 数据
         # print(json.dumps(json_data, indent=4))
         for host in json_data:
-            server_list.append(host["name"])
+            host_node_name = host["nodes_display"][0]
+            if host_node_name in nodes:
+                server_list.append((host["name"], host_node_name))
     else:
         print(f"请求失败，状态码: {response.status_code}")
         print(response.text)
@@ -75,7 +77,6 @@ def get_file_from_repo(ip, url, local_path, **kargs):
     os.system(cmd)
 
 def push():
-    csv_f = "data/test.csv"
     # get conf file
     if os.path.exists("conf_private.yml"):
         bl_conf = yaml.load(open("conf_private.yml"), Loader=yaml.FullLoader)
@@ -89,7 +90,7 @@ def push():
         "pwd": bl_conf["jumpserver"]["pwd"],
         "pkey": bl_conf["jumpserver"]["pkey"]
     }
-    node = bl_conf["jumpserver"]["node"]
+    nodes = bl_conf["jumpserver"]["nodes"]
     # get_server_list_from_jumpserver()
     jms_url = f"http://{ssh_conf['host']}"
     KeyID = bl_conf["jumpserver"]["keyid"]
@@ -97,12 +98,14 @@ def push():
     auth = get_auth(KeyID, SecretID)
     platform = bl_conf["jumpserver"]["platform"]
     # get_user_info(jms_url, auth)
-    sl = get_server_list(jms_url, auth, platform)
+    # get server list sl: [(host, node), (host, node), ...]
+    sl = get_server_list(jms_url, auth, platform, nodes)
+    print("Check remote server list:" + str([x[0] for x in sl]))
     # upload file to server
     local_file = bl_conf["file"]["local_path"]
     mt = bl_conf["file"]["multi_thread"]
     sshtool = SFTPFileManager_Tool(**ssh_conf)
-    sshtool.upload_file_via_jumpserver(local_file, node, sl, mt)
+    sshtool.upload_file_via_jumpserver(local_file, sl, mt)
 
 def pull():
     # get conf file

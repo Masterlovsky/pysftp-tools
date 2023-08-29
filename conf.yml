@@ -13,7 +13,9 @@ jumpserver:
   pkey: 
   pwd:
   platform: 
-  node: 
+  # nodes should be a list of node
+  nodes: 
+    - "Default/"
   keyid: ""
   secretid: ""
 
