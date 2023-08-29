@@ -90,22 +90,35 @@ def push():
         "pwd": bl_conf["jumpserver"]["pwd"],
         "pkey": bl_conf["jumpserver"]["pkey"]
     }
-    nodes = bl_conf["jumpserver"]["nodes"]
-    # get_server_list_from_jumpserver()
-    jms_url = f"http://{ssh_conf['host']}"
-    KeyID = bl_conf["jumpserver"]["keyid"]
-    SecretID = bl_conf["jumpserver"]["secretid"]
-    auth = get_auth(KeyID, SecretID)
-    platform = bl_conf["jumpserver"]["platform"]
-    # get_user_info(jms_url, auth)
-    # get server list sl: [(host, node), (host, node), ...]
-    sl = get_server_list(jms_url, auth, platform, nodes)
-    print("Check remote server list:" + str([x[0] for x in sl]))
-    # upload file to server
-    local_file = bl_conf["file"]["local_path"]
-    mt = bl_conf["file"]["multi_thread"]
-    sshtool = SFTPFileManager_Tool(**ssh_conf)
-    sshtool.upload_file_via_jumpserver(local_file, sl, mt)
+    # 1. get server list from jumpserver
+    if bl_conf["jumpserver"]["worker"]["api"]:
+        nodes = bl_conf["jumpserver"]["worker"]["nodes"]
+        jms_url = f"http://{ssh_conf['host']}"
+        KeyID = bl_conf["jumpserver"]["worker"]["keyid"]
+        SecretID = bl_conf["jumpserver"]["worker"]["secretid"]
+        auth = get_auth(KeyID, SecretID)
+        platform = bl_conf["jumpserver"]["worker"]["platform"]
+        # get_user_info(jms_url, auth)
+        # get server list via jumpserver api, sl: [(host, node), (host, node), ...]
+        sl = get_server_list(jms_url, auth, platform, nodes)
+        print("Check remote server list:" + str([x[0] for x in sl]))
+        # upload file to server
+        local_file = bl_conf["file"]["local_path"]
+        mt = bl_conf["file"]["multi_thread"]
+        sshtool = SFTPFileManager_Tool(**ssh_conf)
+        sshtool.upload_file_via_jumpserver(local_file, sl, mt)
+    # 2. get server list from csv file
+    else:
+        csv_path = bl_conf["jumpserver"]["worker"]["cfg_file"]
+        reader = CSVReader(csv_path)
+        sl = reader.read_server_list()
+        print("Check remote server list:" + str([x[0] for x in sl]))
+        # upload file to server
+        local_file = bl_conf["file"]["local_path"]
+        mt = bl_conf["file"]["multi_thread"]
+        sshtool = SFTPFileManager_Tool(**ssh_conf)
+        sshtool.upload_file_via_jumpserver(local_file, sl, mt)
+
 
 def pull():
     # get conf file

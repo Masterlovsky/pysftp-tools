@@ -281,7 +281,7 @@ class SFTPFileManager_Tool(object):
                     nonlocal succ
                     if x:
                         succ += 1
-                cpu_count = multiprocessing.cpu_count() // 2
+                cpu_count = multiprocessing.cpu_count()
                 if cpu_count == 0:
                     cpu_count = 1
                 pool = multiprocessing.Pool(cpu_count)

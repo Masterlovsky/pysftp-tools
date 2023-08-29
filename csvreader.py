@@ -22,6 +22,13 @@ class CSVReader(object):
             return [dict(zip(['host', 'port', 'username', 'pwd', 'pkey', 'local_path', 'remote_path'],
                              [row[0], int(row[1]), row[2], row[3], row[4], row[5], row[6]])) for row in reader]
 
+    def read_server_list(self):
+        with open(self.csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            # skip the first line
+            next(reader)
+            # return a list of (host, node)
+            return [(row[0], row[1]) for row in reader]
 
 if __name__ == "__main__":
     csv_path = "data/test.csv"

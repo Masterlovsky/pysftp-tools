@@ -12,12 +12,17 @@ jumpserver:
   username: 
   pkey: 
   pwd:
-  platform: 
-  # nodes should be a list of node
-  nodes: 
-    - "Default/"
-  keyid: ""
-  secretid: ""
+  # Configuration required to connect to the working host under the fortress machine
+  worker:
+    # api: If true, get server list by jumpserver api; else use serverlist.csv to manual configure. 
+    api: True 
+    cfg_file: "data/serverlist.csv"
+    platform:
+    # nodes should be a list of node
+    nodes: 
+      - "/Default"
+    keyid:
+    secretid:
 
 # Used for uploading or downloading files, local_Path should be a file when uploading,
 # When downloading local_Path should be a directory
