@@ -1,5 +1,7 @@
 from tqdm import tqdm
 import shutil
+import warnings 
+warnings.filterwarnings(action='ignore',module='.*paramiko.*')
 import paramiko
 
 class SSHConnection(object):
