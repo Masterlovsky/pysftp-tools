@@ -248,8 +248,7 @@ class SFTPFileManager_Tool(object):
                 ssh.upload(local_path=local_path, target_path=target_path)
                 # print(f"Upload success, save to {target_path}")
             except Exception as e:
-                print(f'File "{local_path}" upload failed!')
-                # throw a new exception
+                print(f'File "{local_path}" upload failed! ERROR: {e}')
                 return False
         return True
 
